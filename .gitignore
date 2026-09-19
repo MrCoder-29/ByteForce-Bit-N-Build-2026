@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Build outputs
+dist/
+build/
+*.egg-info/
+
+# Environment and IDE
+.env
+.env.*
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
