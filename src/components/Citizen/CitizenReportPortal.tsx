@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { EmergencyType, Incident } from '../../types/emergency';
+import { emergencyApi } from '../../services/api';
 import { Shield, Flame, HeartPulse, Droplets, Car, ShieldAlert, AlertTriangle, MapPin, Mic, Camera, Send, CheckCircle2, PhoneCall } from 'lucide-react';
 
 interface CitizenReportPortalProps {
@@ -60,12 +61,26 @@ export const CitizenReportPortal: React.FC<CitizenReportPortalProps> = ({ onRepo
       }
     };
 
-    setTimeout(() => {
+    const lat = 19.1190 + (Math.random() - 0.5) * 0.04;
+    const lng = 72.8460 + (Math.random() - 0.5) * 0.04;
+
+    emergencyApi.submitCitizenReport({
+      raw_text: `${type} Emergency: ${description || 'Citizen emergency report'} near ${address} (${injuredCount} casualties estimated)`,
+      latitude: lat,
+      longitude: lng,
+      reporter_contact: contact,
+      source: 'citizen_web'
+    }).then((created) => {
+      onReportSubmitted(created);
+      setIsSubmitting(false);
+      setSuccessMessage(`Emergency Report ${created.id} submitted successfully! Command HQ dispatched alert.`);
+      setDescription('');
+    }).catch(() => {
       onReportSubmitted(newIncident);
       setIsSubmitting(false);
       setSuccessMessage(`Emergency Report ${newIncId} submitted successfully! Command HQ dispatched alert.`);
       setDescription('');
-    }, 800);
+    });
   };
 
   return (

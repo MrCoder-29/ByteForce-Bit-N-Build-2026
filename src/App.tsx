@@ -147,6 +147,9 @@ export const App: React.FC = () => {
   };
 
   const handleUpdateUnitStatus = (unitId: string, status: ResourceUnit['status']) => {
+    emergencyApi.updateResourceStatus(unitId, status).catch((err) => {
+      console.warn('Backend unit status update warning:', err);
+    });
     setUnits((prev) =>
       prev.map((u) => (u.id === unitId ? { ...u, status } : u))
     );

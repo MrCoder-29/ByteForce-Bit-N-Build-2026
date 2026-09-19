@@ -1,12 +1,27 @@
+import sys
+import os
 import logging
+from pathlib import Path
 from typing import Dict, Any, List
 
 logger = logging.getLogger("ai_interface")
 
+# Add project root to sys.path so ai_triage can be imported
+workspace_root = str(Path(__file__).resolve().parent.parent.parent)
+if workspace_root not in sys.path:
+    sys.path.insert(0, workspace_root)
+
+try:
+    from ai_triage.service import AIService
+    _ai_service_instance = AIService()
+except Exception as _ai_err:
+    logger.warning(f"Could not initialize ai_triage AIService: {_ai_err}. Using heuristic fallback.")
+    _ai_service_instance = None
+
 class AIInterface:
     """
-    Adapter interface connecting FastAPI backend to Member 1's AI Service.
-    Includes heuristic fallback if Member 1's module is not yet imported.
+    Adapter interface connecting FastAPI backend to Member 1's AI Service (ai_triage).
+    Includes heuristic fallback if Member 1's module is not available.
     """
 
     @staticmethod
@@ -14,12 +29,34 @@ class AIInterface:
         """
         Classifies raw report text into emergency_type, severity, title, and required capabilities.
         """
-        try:
-            # Attempt to import Member 1's AI service if available
-            from ai_service import classify_incident # type: ignore
-            return classify_incident(raw_text, latitude, longitude)
-        except ImportError:
-            logger.info("Member 1's ai_service not imported. Using backend heuristic classifier.")
+        if _ai_service_instance is not None:
+            try:
+                res = _ai_service_instance.classify_incident({
+                    "description": raw_text,
+                    "latitude": latitude,
+                    "longitude": longitude
+                })
+                sev_str = getattr(res, "severity_label", None) or "Medium"
+                sev_level = getattr(res, "severity_level", 3)
+                
+                sop_res = _ai_service_instance.generate_sop(res.emergency_type, sev_level)
+                sop_lines = [item.action for item in getattr(sop_res, "checklist", [])] if hasattr(sop_res, "checklist") else []
+                if not sop_lines:
+                    sop_lines = [
+                        f"Deploy primary {res.emergency_type} taskforce.",
+                        f"Equip responders with capabilities: {', '.join(res.required_capabilities)}.",
+                        "Establish 200m perimeter cordon."
+                    ]
+
+                return {
+                    "title": raw_text[:50] + "..." if len(raw_text) > 50 else raw_text,
+                    "emergency_type": res.emergency_type,
+                    "severity": sev_str,
+                    "required_capabilities": res.required_capabilities,
+                    "sop_guidelines": sop_lines
+                }
+            except Exception as e:
+                logger.warning(f"Error calling ai_triage classifier: {e}. Falling back to heuristics.")
             
         text_lower = raw_text.lower()
         emergency_type = "General"
@@ -83,11 +120,20 @@ class AIInterface:
         """
         Generates tactical Commander SitRep text summary.
         """
-        try:
-            from ai_service import generate_sitrep # type: ignore
-            return generate_sitrep(incident_title, emergency_type, severity, reports_count)
-        except ImportError:
-            pass
+        if _ai_service_instance is not None:
+            try:
+                res = _ai_service_instance.generate_sitrep({
+                    "title": incident_title,
+                    "emergency_type": emergency_type,
+                    "severity": severity,
+                    "reports_count": reports_count
+                })
+                if hasattr(res, "commander_summary") and res.commander_summary:
+                    return res.commander_summary
+                if hasattr(res, "summary") and res.summary:
+                    return res.summary
+            except Exception as e:
+                logger.warning(f"Error calling ai_triage sitrep generator: {e}")
 
         return (
             f"SITREP ALERT: Active {severity} {emergency_type} incident ({incident_title}). "

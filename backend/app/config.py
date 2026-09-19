@@ -19,8 +19,8 @@ class Settings(BaseSettings):
     WEIGHT_AVAILABILITY: float = float(os.getenv("WEIGHT_AVAILABILITY", "0.2"))
     
     # Default regional coordinates (e.g., Metro area center for synthetic seeding)
-    DEFAULT_CENTER_LAT: float = 37.7749
-    DEFAULT_CENTER_LON: float = -122.4194
+    DEFAULT_CENTER_LAT: float = 19.0760
+    DEFAULT_CENTER_LON: float = 72.8777
 
     class Config:
         env_file = ".env"

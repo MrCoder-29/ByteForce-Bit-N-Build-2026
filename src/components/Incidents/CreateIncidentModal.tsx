@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Incident, EmergencyType, SeverityLevel } from '../../types/emergency';
+import { emergencyApi } from '../../services/api';
 import { X, PlusCircle, CheckCircle2, MapPin, Flame, HeartPulse, Droplets, Car, ShieldAlert, Crosshair } from 'lucide-react';
 
 interface CreateIncidentModalProps {
@@ -117,13 +118,21 @@ export const CreateIncidentModal: React.FC<CreateIncidentModalProps> = ({
       ]
     };
 
-    setSuccessMessage(`✓ Test incident ${testId} created successfully`);
-
-    setTimeout(() => {
-      onCreateIncident(newIncident);
-      setSuccessMessage(null);
-      onClose();
-    }, 600);
+    emergencyApi.createIncident(newIncident).then((created) => {
+      setSuccessMessage(`✓ Incident #${created.id} created & AI Triaged`);
+      setTimeout(() => {
+        onCreateIncident(created);
+        setSuccessMessage(null);
+        onClose();
+      }, 500);
+    }).catch(() => {
+      setSuccessMessage(`✓ Test incident ${testId} created successfully`);
+      setTimeout(() => {
+        onCreateIncident(newIncident);
+        setSuccessMessage(null);
+        onClose();
+      }, 500);
+    });
   };
 
   return (
@@ -160,16 +169,16 @@ export const CreateIncidentModal: React.FC<CreateIncidentModalProps> = ({
         )}
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-5 space-y-4 overflow-y-auto flex-1">
+        <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto flex-1">
           {/* 1. Emergency Type */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-300 uppercase tracking-wider block">
+            <label className="text-sm font-bold text-slate-200 uppercase tracking-wider block">
               1. Emergency Type <span className="text-red-400">*</span>
             </label>
             <select
               value={emergencyType}
               onChange={(e) => setEmergencyType(e.target.value as EmergencyType)}
-              className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-red-500 font-medium"
+              className="w-full px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-sm text-white focus:outline-none focus:border-red-500 font-medium"
             >
               <option value="FIRE">🔥 Fire</option>
               <option value="FLOOD">🌊 Flood</option>
@@ -179,12 +188,12 @@ export const CreateIncidentModal: React.FC<CreateIncidentModalProps> = ({
               <option value="STRUCTURAL">🏗️ Structural Collapse</option>
               <option value="CRIME">🛡️ Other (Crime / Public Safety)</option>
             </select>
-            {errors.emergencyType && <p className="text-[11px] text-red-400">{errors.emergencyType}</p>}
+            {errors.emergencyType && <p className="text-xs text-red-400 font-medium">{errors.emergencyType}</p>}
           </div>
 
           {/* 2. Incident Title */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-300 uppercase tracking-wider block">
+            <label className="text-sm font-bold text-slate-200 uppercase tracking-wider block">
               2. Incident Title <span className="text-red-400">*</span>
             </label>
             <input
@@ -192,14 +201,14 @@ export const CreateIncidentModal: React.FC<CreateIncidentModalProps> = ({
               placeholder="e.g. Major Transformer Fire near Metro Pillar 42"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className={`w-full px-3.5 py-2.5 bg-slate-900 border ${errors.title ? 'border-red-500' : 'border-slate-800'} rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-red-500`}
+              className={`w-full px-4 py-2.5 bg-slate-900 border ${errors.title ? 'border-red-500' : 'border-slate-800'} rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-red-500 font-medium`}
             />
-            {errors.title && <p className="text-[11px] text-red-400">{errors.title}</p>}
+            {errors.title && <p className="text-xs text-red-400 font-medium">{errors.title}</p>}
           </div>
 
           {/* 3. Description */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-300 uppercase tracking-wider block">
+            <label className="text-sm font-bold text-slate-200 uppercase tracking-wider block">
               3. Description (AI Triage Summary)
             </label>
             <textarea
@@ -207,37 +216,37 @@ export const CreateIncidentModal: React.FC<CreateIncidentModalProps> = ({
               placeholder="Enter details regarding casualties, hazard scale, or immediate support required..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-red-500"
+              className="w-full px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-red-500 font-medium"
             />
           </div>
 
           {/* 4. Severity & Source */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 uppercase tracking-wider block">
+              <label className="text-sm font-bold text-slate-200 uppercase tracking-wider block">
                 4. Severity Level <span className="text-red-400">*</span>
               </label>
               <select
                 value={severity}
                 onChange={(e) => setSeverity(e.target.value as SeverityLevel)}
-                className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-red-500 font-semibold"
+                className="w-full px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-sm text-white focus:outline-none focus:border-red-500 font-semibold"
               >
                 <option value="CRITICAL">🔴 CRITICAL (Immediate Life Threat)</option>
                 <option value="HIGH">🟠 HIGH (Major Hazard / Escalating)</option>
                 <option value="MEDIUM">🟡 MEDIUM (Standard Response)</option>
                 <option value="LOW">🔵 LOW (Minor Incident)</option>
               </select>
-              {errors.severity && <p className="text-[11px] text-red-400">{errors.severity}</p>}
+              {errors.severity && <p className="text-xs text-red-400 font-medium">{errors.severity}</p>}
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 uppercase tracking-wider block">
+              <label className="text-sm font-bold text-slate-200 uppercase tracking-wider block">
                 5. Source Channel
               </label>
               <select
                 value={source}
                 onChange={(e) => setSource(e.target.value as Incident['source'])}
-                className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-red-500"
+                className="w-full px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-sm text-white focus:outline-none focus:border-red-500 font-medium"
               >
                 <option value="CITIZEN_APP">📱 Citizen Report (PWA)</option>
                 <option value="911_HOTLINE">📞 Emergency Call (Hotline)</option>
@@ -251,36 +260,36 @@ export const CreateIncidentModal: React.FC<CreateIncidentModalProps> = ({
           {/* 5. Location Address & Presets */}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <label className="text-xs font-bold text-slate-300 uppercase tracking-wider block">
+              <label className="text-sm font-bold text-slate-200 uppercase tracking-wider block">
                 6. Location Address <span className="text-red-400">*</span>
               </label>
-              <span className="text-[10px] text-cyan-400 font-mono">📍 Select Preset below</span>
+              <span className="text-xs text-cyan-400 font-mono font-medium">📍 Select Preset below</span>
             </div>
             <div className="relative">
-              <MapPin className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-cyan-400" />
+              <MapPin className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-cyan-400" />
               <input
                 type="text"
                 placeholder="e.g. Metro Line 3 Station, Andheri East"
                 value={locationAddress}
                 onChange={(e) => setLocationAddress(e.target.value)}
-                className={`w-full pl-9 pr-3 py-2.5 bg-slate-900 border ${errors.locationAddress ? 'border-red-500' : 'border-slate-800'} rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-red-500`}
+                className={`w-full pl-10 pr-4 py-2.5 bg-slate-900 border ${errors.locationAddress ? 'border-red-500' : 'border-slate-800'} rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-red-500 font-medium`}
               />
             </div>
-            {errors.locationAddress && <p className="text-[11px] text-red-400">{errors.locationAddress}</p>}
+            {errors.locationAddress && <p className="text-xs text-red-400 font-medium">{errors.locationAddress}</p>}
 
             {/* Location Presets for Quick Map Positioning */}
-            <div className="pt-1">
-              <p className="text-[10px] text-slate-400 font-semibold mb-1 flex items-center gap-1">
-                <Crosshair className="w-3 h-3 text-amber-400" />
+            <div className="pt-1.5">
+              <p className="text-xs text-slate-300 font-semibold mb-1.5 flex items-center gap-1.5">
+                <Crosshair className="w-3.5 h-3.5 text-amber-400" />
                 <span>Quick Location & Map Coordinates:</span>
               </p>
-              <div className="flex flex-wrap gap-1">
+              <div className="flex flex-wrap gap-1.5">
                 {PRESET_LOCATIONS.map((preset) => (
                   <button
                     type="button"
                     key={preset.label}
                     onClick={() => handleSelectPresetLocation(preset)}
-                    className="px-2 py-1 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-cyan-500/50 text-[10px] text-slate-300 hover:text-cyan-300 transition-all text-left"
+                    className="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-cyan-500/50 text-xs font-semibold text-slate-300 hover:text-cyan-300 transition-all text-left"
                   >
                     📍 {preset.label.split(' ')[0]} {preset.label.split(' ')[1]}
                   </button>
@@ -292,51 +301,51 @@ export const CreateIncidentModal: React.FC<CreateIncidentModalProps> = ({
           {/* 6. Coordinates & Estimated Casualties */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="space-y-1">
-              <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider block">Latitude</label>
+              <label className="text-xs font-bold text-slate-300 uppercase tracking-wider block">Latitude</label>
               <input
                 type="text"
                 value={lat}
                 onChange={(e) => setLat(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs font-mono text-cyan-300 focus:outline-none focus:border-cyan-500"
+                className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-sm font-mono text-cyan-300 focus:outline-none focus:border-cyan-500"
               />
-              {errors.lat && <p className="text-[10px] text-red-400">{errors.lat}</p>}
+              {errors.lat && <p className="text-xs text-red-400">{errors.lat}</p>}
             </div>
 
             <div className="space-y-1">
-              <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider block">Longitude</label>
+              <label className="text-xs font-bold text-slate-300 uppercase tracking-wider block">Longitude</label>
               <input
                 type="text"
                 value={lng}
                 onChange={(e) => setLng(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs font-mono text-cyan-300 focus:outline-none focus:border-cyan-500"
+                className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-sm font-mono text-cyan-300 focus:outline-none focus:border-cyan-500"
               />
-              {errors.lng && <p className="text-[10px] text-red-400">{errors.lng}</p>}
+              {errors.lng && <p className="text-xs text-red-400">{errors.lng}</p>}
             </div>
 
             <div className="space-y-1">
-              <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider block">Casualties</label>
+              <label className="text-xs font-bold text-slate-300 uppercase tracking-wider block">Casualties</label>
               <input
                 type="number"
                 min="0"
                 value={estimatedCasualties}
                 onChange={(e) => setEstimatedCasualties(parseInt(e.target.value) || 0)}
-                className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-red-500"
+                className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-sm text-white focus:outline-none focus:border-red-500"
               />
             </div>
           </div>
 
           {/* Footer Actions */}
-          <div className="pt-3 border-t border-slate-800/80 flex items-center justify-end gap-2 shrink-0">
+          <div className="pt-4 border-t border-slate-800/80 flex items-center justify-end gap-3 shrink-0">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-semibold text-slate-300 hover:text-white transition-colors"
+              className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-sm font-bold text-slate-300 hover:text-white transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-red-600 via-amber-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-heading font-extrabold text-xs flex items-center gap-1.5 shadow-lg shadow-red-950 transition-all"
+              className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-red-600 via-amber-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-heading font-black text-sm flex items-center gap-2 shadow-lg shadow-red-950 transition-all hover:scale-105"
             >
               <PlusCircle className="w-4 h-4" />
               <span>Create Incident</span>

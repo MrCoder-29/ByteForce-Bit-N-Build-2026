@@ -1,7 +1,7 @@
 import logging
 from sqlalchemy.orm import Session
 from app.database import SessionLocal, Base, engine
-from app.models import Resource
+from app.models import Resource, Incident
 from app.config import settings
 
 logger = logging.getLogger("seed_data")
@@ -185,6 +185,77 @@ INITIAL_RESOURCES = [
     }
 ]
 
+INITIAL_INCIDENTS_SEED = [
+    {
+        "title": "Major Chemical Leak in Industrial Sector 4",
+        "description": "High concentration Ammonia sensor spike verified by citizen calls. Immediate evacuation & Hazmat isolation needed.",
+        "emergency_type": "HAZMAT",
+        "severity": "Critical",
+        "status": "Triaged",
+        "latitude": 19.0760,
+        "longitude": 72.8777,
+        "location_name": "Plot 42, MIDC Industrial Area, Andheri East",
+        "required_capabilities": ["Hazmat", "Hazmat Isolation", "Decontamination"],
+        "sop_guidelines": [
+            "Deploy primary HAZMAT containment taskforce.",
+            "Establish 300m hot zone perimeter and evacuate non-essential personnel.",
+            "Equip responders with Level A/B hazmat protection suits."
+        ],
+        "sitrep_summary": "SITREP ALERT: Active Critical HAZMAT incident at MIDC Industrial Area. Toxic vapor risk present; immediate hazmat dispatch required."
+    },
+    {
+        "title": "Multi-Vehicle Highway Pileup on Western Express",
+        "description": "Severe traffic collision involving passenger bus and 3 cars. Trapped victims reported inside vehicle frame.",
+        "emergency_type": "Road Accident",
+        "severity": "Critical",
+        "status": "Reported",
+        "latitude": 19.1197,
+        "longitude": 72.8464,
+        "location_name": "Western Express Highway, Flyover Southbound",
+        "required_capabilities": ["Advanced Life Support", "Extrication", "Traffic Control"],
+        "sop_guidelines": [
+            "Deploy heavy rescue and ambulance units.",
+            "Coordinate hydraulic extrication tools.",
+            "Redirect highway traffic to prevent secondary pileups."
+        ],
+        "sitrep_summary": "SITREP ALERT: Active Critical Road Accident incident on Western Express Highway. Multiple injuries with entrapped passengers."
+    },
+    {
+        "title": "Residential Building Fire on 5th Floor",
+        "description": "Flames spreading from balcony to upper floors. Dense smoke plume, resident evacuation underway.",
+        "emergency_type": "Fire",
+        "severity": "High",
+        "status": "Dispatched",
+        "latitude": 19.0330,
+        "longitude": 72.8570,
+        "location_name": "Shanti Towers, B-Wing, Dadar West",
+        "required_capabilities": ["Fire Suppression", "High Rise Ladder", "Search & Rescue"],
+        "sop_guidelines": [
+            "Dispatch aerial ladder truck and pumper engine.",
+            "Connect primary hydrants and commence interior search.",
+            "Verify complete floor-by-floor evacuation."
+        ],
+        "sitrep_summary": "SITREP ALERT: Active High Fire incident at Dadar West. High rise ladder deployed; fire suppression underway."
+    },
+    {
+        "title": "Flash Flood - Drowning Victims Near Harbor",
+        "description": "Rising water levels trapping individuals under pier bridge. Water rescue boats and divers required.",
+        "emergency_type": "Flood",
+        "severity": "Critical",
+        "status": "Triaged",
+        "latitude": 19.0960,
+        "longitude": 72.9127,
+        "location_name": "Creek Harbor Pier 7",
+        "required_capabilities": ["Water Rescue", "Flood Support", "Diver Unit"],
+        "sop_guidelines": [
+            "Launch swiftwater rescue boats.",
+            "Deploy diver team with thermal flotation gear.",
+            "Set up medical stabilization shoreline tent."
+        ],
+        "sitrep_summary": "SITREP ALERT: Active Critical Flood incident at Creek Harbor. Water rescue boats dispatched for rapid victim extraction."
+    }
+]
+
 def seed_resources_if_empty(db: Session = None):
     close_db = False
     if db is None:
@@ -201,11 +272,36 @@ def seed_resources_if_empty(db: Session = None):
             db.commit()
             logger.info(f"Successfully seeded {len(INITIAL_RESOURCES)} emergency resources.")
         else:
-            logger.info(f"Database already contains {existing_count} resources. Skipping seed.")
+            logger.info(f"Database already contains {existing_count} resources. Skipping resource seed.")
     finally:
         if close_db:
             db.close()
 
+def seed_incidents_if_empty(db: Session = None):
+    close_db = False
+    if db is None:
+        db = SessionLocal()
+        close_db = True
+
+    try:
+        existing_count = db.query(Incident).count()
+        if existing_count == 0:
+            logger.info("Seeding initial active incidents into database...")
+            for inc_data in INITIAL_INCIDENTS_SEED:
+                inc = Incident(**inc_data)
+                db.add(inc)
+            db.commit()
+            logger.info(f"Successfully seeded {len(INITIAL_INCIDENTS_SEED)} emergency incidents.")
+        else:
+            logger.info(f"Database already contains {existing_count} incidents. Skipping incident seed.")
+    finally:
+        if close_db:
+            db.close()
+
+def seed_all_if_empty(db: Session = None):
+    seed_resources_if_empty(db)
+    seed_incidents_if_empty(db)
+
 if __name__ == "__main__":
     Base.metadata.create_all(bind=engine)
-    seed_resources_if_empty()
+    seed_all_if_empty()

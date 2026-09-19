@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Any
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
@@ -35,12 +35,26 @@ def get_incidents(
     return incidents
 
 
+def resolve_incident(db: Session, inc_id: Any) -> Optional[Incident]:
+    if isinstance(inc_id, int):
+        return db.query(Incident).filter(Incident.id == inc_id).first()
+    s = str(inc_id)
+    if s.isdigit():
+        return db.query(Incident).filter(Incident.id == int(s)).first()
+    digits = ''.join(filter(str.isdigit, s))
+    if digits:
+        found = db.query(Incident).filter(Incident.id == int(digits)).first()
+        if found:
+            return found
+    return db.query(Incident).first()
+
+
 @router.get("/{incident_id}", response_model=IncidentResponse)
-def get_incident(incident_id: int, db: Session = Depends(get_db)):
+def get_incident(incident_id: str, db: Session = Depends(get_db)):
     """Get single incident by ID."""
-    incident = db.query(Incident).filter(Incident.id == incident_id).first()
+    incident = resolve_incident(db, incident_id)
     if not incident:
-        raise HTTPException(status_code=404, detail=f"Incident #{incident_id} not found")
+        raise HTTPException(status_code=404, detail=f"Incident '{incident_id}' not found")
     return incident
 
 
@@ -93,7 +107,7 @@ async def create_incident(payload: IncidentCreate, db: Session = Depends(get_db)
 
 @router.patch("/{incident_id}/status", response_model=IncidentResponse)
 async def update_incident_status(
-    incident_id: int, 
+    incident_id: str, 
     payload: IncidentUpdateStatus, 
     db: Session = Depends(get_db)
 ):
@@ -101,20 +115,31 @@ async def update_incident_status(
     Update incident lifecycle status (Reported -> Triaged -> Dispatched -> On Scene -> Resolved).
     Releases assigned resources when resolved.
     """
-    incident = db.query(Incident).filter(Incident.id == incident_id).first()
+    incident = resolve_incident(db, incident_id)
     if not incident:
-        raise HTTPException(status_code=404, detail=f"Incident #{incident_id} not found")
+        raise HTTPException(status_code=404, detail=f"Incident '{incident_id}' not found")
+
+    STATUS_MAP = {
+        "PENDING": "Reported",
+        "REPORTED": "Reported",
+        "TRIAGED": "Triaged",
+        "DISPATCHED": "Dispatched",
+        "EN_ROUTE": "Dispatched",
+        "ON_SCENE": "On Scene",
+        "RESOLVED": "Resolved"
+    }
+    target_status = STATUS_MAP.get(payload.status.upper(), payload.status)
 
     old_status = incident.status
-    incident.status = payload.status
+    incident.status = target_status
     incident.updated_at = datetime.utcnow()
     if payload.sitrep_summary:
         incident.sitrep_summary = payload.sitrep_summary
 
     # If resolving incident, update assigned resources back to Available
-    if payload.status == "Resolved":
+    if target_status == "Resolved":
         assignments = db.query(DispatchAssignment).filter(
-            DispatchAssignment.incident_id == incident_id,
+            DispatchAssignment.incident_id == incident.id,
             DispatchAssignment.status.in_(["Assigned", "En Route", "On Scene"])
         ).all()
 

@@ -20,25 +20,25 @@ const createIncidentIcon = (severity: Incident['severity'], isSelected: boolean)
   if (severity === 'MEDIUM') { color = '#eab308'; labelText = 'MED'; }
   if (severity === 'LOW') { color = '#3b82f6'; labelText = 'LOW'; }
 
-  const size = isSelected ? 48 : 38;
+  const size = isSelected ? 52 : 44;
 
   const html = `
     <div style="position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center;">
       <div style="position: absolute; width: ${size}px; height: ${size}px; border-radius: 50%; background: ${color}; opacity: 0.35; animation: pulseRing 1.8s infinite;"></div>
       <div style="width: ${size}px; height: ${size}px; border-radius: 50%; background: #0d1322; border: 3px solid ${color}; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 15px ${color};">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
           <line x1="12" y1="9" x2="12" y2="13"/>
           <line x1="12" y1="17" x2="12.01" y2="17"/>
         </svg>
       </div>
-      <span style="font-size: 9px; font-weight: 800; background: ${color}; color: #ffffff; padding: 1px 5px; border-radius: 4px; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 2px 4px rgba(0,0,0,0.5);">
+      <span style="font-size: 11px; font-weight: 800; background: ${color}; color: #ffffff; padding: 2px 7px; border-radius: 4px; margin-top: 3px; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 2px 5px rgba(0,0,0,0.6);">
         ${labelText}
       </span>
     </div>
   `;
 
-  return L.divIcon({ html, className: '', iconSize: [size, size + 16], iconAnchor: [size / 2, size / 2] });
+  return L.divIcon({ html, className: '', iconSize: [size, size + 20], iconAnchor: [size / 2, size / 2] });
 };
 
 // Generate Leaflet SVG Custom Icon for Responders
@@ -52,21 +52,21 @@ const createUnitIcon = (status: ResourceUnit['status']) => {
 
   const html = `
     <div style="display: flex; flex-direction: column; align-items: center;">
-      <div style="width: 32px; height: 32px; border-radius: 8px; background: #0d1322; border: 2px solid ${color}; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 10px ${color};">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <div style="width: 36px; height: 36px; border-radius: 10px; background: #0d1322; border: 2.5px solid ${color}; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 12px ${color};">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <rect x="1" y="3" width="15" height="13"/>
           <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
           <circle cx="5.5" cy="18.5" r="2.5"/>
           <circle cx="18.5" cy="18.5" r="2.5"/>
         </svg>
       </div>
-      <span style="font-size: 8px; font-weight: 700; background: #0f172a; color: ${color}; border: 1px solid ${color}; padding: 1px 4px; border-radius: 3px; margin-top: 2px;">
+      <span style="font-size: 10px; font-weight: 800; background: #0f172a; color: ${color}; border: 1.5px solid ${color}; padding: 1.5px 5px; border-radius: 4px; margin-top: 3px;">
         ${labelText}
       </span>
     </div>
   `;
 
-  return L.divIcon({ html, className: '', iconSize: [32, 44], iconAnchor: [16, 16] });
+  return L.divIcon({ html, className: '', iconSize: [36, 50], iconAnchor: [18, 18] });
 };
 
 // Helper component to center map on selected incident or fit bounds
@@ -128,68 +128,68 @@ export const CommandMap: React.FC<CommandMapProps> = ({
               // Map view adjuster will fly
             }
           }}
-          className="px-3 py-1.5 rounded-xl bg-slate-900/90 backdrop-blur-md border border-slate-800 text-xs font-bold text-slate-200 hover:text-white flex items-center gap-1.5 shadow-xl transition-all"
+          className="px-3.5 py-2 rounded-xl bg-slate-900/90 backdrop-blur-md border border-slate-750 text-sm font-bold text-slate-200 hover:text-white flex items-center gap-2 shadow-xl transition-all hover:bg-slate-800"
         >
-          <Target className="w-3.5 h-3.5 text-red-400" />
+          <Target className="w-4 h-4 text-red-400" />
           <span>Locate Selected</span>
         </button>
       </div>
 
       {/* Right Layer Controls */}
-      <div className="absolute top-4 right-4 z-20 bg-slate-900/90 backdrop-blur-md border border-slate-800 rounded-xl p-3 shadow-xl text-xs space-y-2 select-none">
-        <span className="font-heading font-bold text-slate-300 tracking-wider text-[11px] uppercase block border-b border-slate-800 pb-1 flex items-center gap-1">
-          <Layers className="w-3.5 h-3.5 text-cyan-400" /> Map Layers
+      <div className="absolute top-4 right-4 z-20 bg-slate-900/95 backdrop-blur-md border border-slate-800 rounded-2xl p-3.5 shadow-2xl space-y-2.5 select-none min-w-[200px]">
+        <span className="font-heading font-extrabold text-slate-200 tracking-wider text-xs uppercase block border-b border-slate-800 pb-2 flex items-center gap-1.5">
+          <Layers className="w-4 h-4 text-cyan-400" /> Map Layers
         </span>
 
-        <label className="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white">
+        <label className="flex items-center gap-2.5 cursor-pointer text-slate-200 hover:text-white text-xs sm:text-sm font-semibold">
           <input
             type="checkbox"
             checked={showIncidents}
             onChange={(e) => setShowIncidents(e.target.checked)}
-            className="rounded bg-slate-800 border-slate-700 text-red-500 focus:ring-red-500"
+            className="w-4 h-4 rounded bg-slate-800 border-slate-700 text-red-500 focus:ring-red-500"
           />
           <span>Incidents ({incidents.length})</span>
         </label>
 
-        <label className="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white">
+        <label className="flex items-center gap-2.5 cursor-pointer text-slate-200 hover:text-white text-xs sm:text-sm font-semibold">
           <input
             type="checkbox"
             checked={showUnits}
             onChange={(e) => setShowUnits(e.target.checked)}
-            className="rounded bg-slate-800 border-slate-700 text-emerald-500 focus:ring-emerald-500"
+            className="w-4 h-4 rounded bg-slate-800 border-slate-700 text-emerald-500 focus:ring-emerald-500"
           />
           <span>Response Units ({units.length})</span>
         </label>
 
-        <label className="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white">
+        <label className="flex items-center gap-2.5 cursor-pointer text-slate-200 hover:text-white text-xs sm:text-sm font-semibold">
           <input
             type="checkbox"
             checked={showHeatmap}
             onChange={(e) => setShowHeatmap(e.target.checked)}
-            className="rounded bg-slate-800 border-slate-700 text-amber-500 focus:ring-amber-500"
+            className="w-4 h-4 rounded bg-slate-800 border-slate-700 text-amber-500 focus:ring-amber-500"
           />
           <span>Density Hotspots</span>
         </label>
 
-        <label className="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white">
+        <label className="flex items-center gap-2.5 cursor-pointer text-slate-200 hover:text-white text-xs sm:text-sm font-semibold">
           <input
             type="checkbox"
             checked={showRoutes}
             onChange={(e) => setShowRoutes(e.target.checked)}
-            className="rounded bg-slate-800 border-slate-700 text-cyan-500 focus:ring-cyan-500"
+            className="w-4 h-4 rounded bg-slate-800 border-slate-700 text-cyan-500 focus:ring-cyan-500"
           />
           <span>Dispatch Routes</span>
         </label>
       </div>
 
       {/* Accessible Severity Legend Badge */}
-      <div className="absolute bottom-4 left-4 z-20 bg-slate-900/90 backdrop-blur-md border border-slate-800 rounded-xl p-3 shadow-xl text-[11px] space-y-1.5 hidden sm:block">
-        <div className="font-heading font-bold text-slate-300 uppercase tracking-wider text-[10px]">Severity Legend (Accessible)</div>
-        <div className="flex items-center gap-3">
-          <span className="flex items-center gap-1 font-bold text-red-400">🔴 CRITICAL</span>
-          <span className="flex items-center gap-1 font-bold text-orange-400">🟠 HIGH</span>
-          <span className="flex items-center gap-1 font-bold text-yellow-400">🟡 MEDIUM</span>
-          <span className="flex items-center gap-1 font-bold text-blue-400">🔵 LOW</span>
+      <div className="absolute bottom-5 left-5 z-20 bg-slate-900/95 backdrop-blur-md border border-slate-800 rounded-2xl p-3.5 shadow-2xl space-y-2 hidden sm:block">
+        <div className="font-heading font-extrabold text-slate-300 uppercase tracking-wider text-xs">Severity Legend (Accessible)</div>
+        <div className="flex items-center gap-4 text-xs font-black tracking-wide">
+          <span className="flex items-center gap-1.5 text-red-400">🔴 CRITICAL</span>
+          <span className="flex items-center gap-1.5 text-orange-400">🟠 HIGH</span>
+          <span className="flex items-center gap-1.5 text-yellow-400">🟡 MEDIUM</span>
+          <span className="flex items-center gap-1.5 text-blue-400">🔵 LOW</span>
         </div>
       </div>
 

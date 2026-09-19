@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.database import engine, Base, get_db
-from app.seed_data import seed_resources_if_empty
+from app.seed_data import seed_all_if_empty
 from app.websocket_manager import manager as ws_manager
 from app.escalation import monitor_sla_escalations
 from app.routers import incidents, resources, dispatch, analytics, simulation
@@ -25,8 +25,8 @@ async def lifespan(app: FastAPI):
     logger.info("Initializing ResQSync Database Tables...")
     Base.metadata.create_all(bind=engine)
 
-    logger.info("Seeding synthetic resources if database is empty...")
-    seed_resources_if_empty()
+    logger.info("Seeding synthetic resources and initial incidents if database is empty...")
+    seed_all_if_empty()
 
     logger.info("Launching SLA Escalation Background Task...")
     escalation_task = asyncio.create_task(monitor_sla_escalations())
@@ -71,13 +71,13 @@ def root():
     }
 
 @app.get("/health", tags=["Health & Status"])
+@app.get("/api/v1/health", tags=["Health & Status"])
 def health_check():
     return {"status": "healthy"}
 
 
-# WebSocket Endpoint
-@app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
+# WebSocket Endpoints (support both /ws and /ws/hq)
+async def handle_ws_session(websocket: WebSocket):
     await ws_manager.connect(websocket)
     try:
         # Send initial welcome payload
@@ -94,3 +94,11 @@ async def websocket_endpoint(websocket: WebSocket):
     except Exception as e:
         logger.error(f"WebSocket error: {e}")
         ws_manager.disconnect(websocket)
+
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    await handle_ws_session(websocket)
+
+@app.websocket("/ws/hq")
+async def websocket_hq_endpoint(websocket: WebSocket):
+    await handle_ws_session(websocket)

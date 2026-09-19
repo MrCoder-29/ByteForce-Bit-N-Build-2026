@@ -18,16 +18,18 @@ export const ResourceFleetPanel: React.FC<ResourceFleetPanelProps> = ({ units, o
   ];
 
   return (
-    <div className="bg-[#0d1322] border border-slate-800 rounded-2xl p-4 shadow-xl space-y-4">
-      <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-        <h3 className="font-heading font-bold text-sm text-white flex items-center gap-2">
-          <Truck className="w-4 h-4 text-emerald-400" />
+    <div className="bg-[#0d1322] border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
+      <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 className="font-heading font-black text-base sm:text-lg text-white flex items-center gap-2.5">
+          <Truck className="w-5 h-5 text-emerald-400" />
           <span>Response Fleet Utilization & Readiness</span>
         </h3>
-        <span className="text-[10px] font-mono text-slate-400">{units.length} Total Units</span>
+        <span className="text-xs sm:text-sm font-mono font-bold text-slate-300 bg-slate-900 px-3 py-1 rounded-xl border border-slate-800">
+          {units.length} Total Units
+        </span>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {categories.map((cat) => {
           const catUnits = units.filter((u) => u.type === cat.type);
           const total = catUnits.length;
@@ -37,30 +39,30 @@ export const ResourceFleetPanel: React.FC<ResourceFleetPanelProps> = ({ units, o
           const Icon = cat.icon;
 
           return (
-            <div key={cat.type} className="p-3 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
+            <div key={cat.type} className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-slate-700 space-y-3 transition-colors">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className={`p-1.5 rounded-lg border ${cat.color}`}>
-                    <Icon className="w-4 h-4" />
+                <div className="flex items-center gap-2.5">
+                  <span className={`p-2 rounded-xl border ${cat.color}`}>
+                    <Icon className="w-5 h-5" />
                   </span>
-                  <span className="font-heading font-semibold text-xs text-white">{cat.title}</span>
+                  <span className="font-heading font-extrabold text-sm sm:text-base text-white">{cat.title}</span>
                 </div>
-                <span className="text-[10px] font-mono font-bold text-slate-400">
+                <span className="text-xs sm:text-sm font-mono font-extrabold text-slate-200 bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-700">
                   {available} Ready / {total}
                 </span>
               </div>
 
               {/* Progress Bar */}
-              <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+              <div className="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden">
                 <div
                   className="bg-gradient-to-r from-emerald-500 to-amber-500 h-full transition-all duration-500"
                   style={{ width: `${pct}%` }}
                 />
               </div>
 
-              <div className="flex items-center justify-between text-[10px] text-slate-400 font-medium pt-0.5">
-                <span>Deployed: <strong className="text-amber-400">{deployed}</strong></span>
-                <span>Available: <strong className="text-emerald-400">{available}</strong></span>
+              <div className="flex items-center justify-between text-xs sm:text-sm text-slate-300 font-semibold pt-0.5">
+                <span>Deployed: <strong className="text-amber-400 font-extrabold">{deployed}</strong></span>
+                <span>Available: <strong className="text-emerald-400 font-extrabold">{available}</strong></span>
               </div>
             </div>
           );

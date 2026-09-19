@@ -1,4 +1,5 @@
 import { WebSocketMessage, Incident, ResourceUnit, AlertNotice } from '../types/emergency';
+import { normalizeBackendIncident } from './api';
 
 const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:8000/ws/hq';
 
@@ -30,8 +31,9 @@ class WebSocketService {
 
       this.socket.onmessage = (event) => {
         try {
-          const data: WebSocketMessage = JSON.parse(event.data);
-          this.notifyHandlers(data);
+          const raw = JSON.parse(event.data);
+          const messages = this.normalizeIncomingMessages(raw);
+          messages.forEach((msg) => this.notifyHandlers(msg));
         } catch (e) {
           console.error('[WebSocket HQ] Failed to parse message', e);
         }
@@ -45,14 +47,103 @@ class WebSocketService {
         this.isConnected = false;
         this.socket = null;
         console.log('[WebSocket HQ] Connection closed.');
-        // Auto reconnect every 5s if not in simulation mode
+        // Auto reconnect every 4s if not in simulation mode
         if (!this.isSimulating) {
-          this.reconnectTimer = setTimeout(() => this.connect(), 5000);
+          this.reconnectTimer = setTimeout(() => this.connect(), 4000);
         }
       };
     } catch (e) {
       console.warn('[WebSocket HQ] WebSockets unavailable. Auto-enabling simulator.');
     }
+  }
+
+  private normalizeIncomingMessages(raw: any): WebSocketMessage[] {
+    const ts = raw.timestamp || new Date().toISOString();
+    const event = raw.event;
+    const data = raw.data || raw.payload || {};
+
+    // 1. New Incident created
+    if (event === 'incident_created' || event === 'INCIDENT_NEW') {
+      return [{
+        event: 'INCIDENT_NEW',
+        timestamp: ts,
+        payload: normalizeBackendIncident(data)
+      }];
+    }
+
+    // 2. Incident status or sitrep updated
+    if (event === 'incident_updated' || event === 'INCIDENT_UPDATE') {
+      return [{
+        event: 'INCIDENT_UPDATE',
+        timestamp: ts,
+        payload: normalizeBackendIncident(data)
+      }];
+    }
+
+    // 3. Responder status or GPS changed
+    if (event === 'responder_status_changed' || event === 'UNIT_STATUS_CHANGE') {
+      const statusMap: Record<string, string> = {
+        Available: 'AVAILABLE',
+        Dispatched: 'DISPATCHED',
+        'En Route': 'EN_ROUTE',
+        'On Scene': 'ON_SCENE',
+        Maintenance: 'MAINTENANCE',
+        Offline: 'OFFLINE'
+      };
+      const rawStatus = data.new_status || data.status || 'AVAILABLE';
+      const status = statusMap[rawStatus] || String(rawStatus).toUpperCase();
+
+      return [{
+        event: 'UNIT_STATUS_CHANGE',
+        timestamp: ts,
+        payload: {
+          unitId: String(data.resource_id || data.identifier || data.unitId),
+          status,
+          location: data.latitude ? { lat: data.latitude, lng: data.longitude, address: data.name || 'Field Unit' } : data.location
+        }
+      }];
+    }
+
+    // 4. Resource dispatched
+    if (event === 'resource_dispatched' || event === 'UNIT_DISPATCHED') {
+      return [
+        {
+          event: 'UNIT_STATUS_CHANGE',
+          timestamp: ts,
+          payload: {
+            unitId: String(data.resource_id || data.resource_identifier || data.unitId),
+            status: 'DISPATCHED',
+            currentIncidentId: String(data.incident_id)
+          }
+        }
+      ];
+    }
+
+    // 5. SLA Escalation Alert
+    if (event === 'sla_escalation' || event === 'ESCALATION_ALERT') {
+      const alert: AlertNotice = {
+        id: `ALT-${Date.now()}`,
+        type: 'ESCALATION',
+        title: 'AUTOMATED SLA ESCALATION WARNING',
+        message: data.message || `Incident #${data.incident_id} unassigned for > ${data.elapsed_seconds || 90}s!`,
+        timestamp: ts,
+        incidentId: String(data.incident_id || ''),
+        severity: 'CRITICAL',
+        acknowledged: false
+      };
+      return [{
+        event: 'ESCALATION_ALERT',
+        timestamp: ts,
+        payload: alert
+      }];
+    }
+
+    // 6. Generic or heartbeat passthrough
+    if (event === 'SYSTEM_HEARTBEAT') {
+      return [{ event: 'SYSTEM_HEARTBEAT', timestamp: ts, payload: data }];
+    }
+
+    return [];
   }
 
   public subscribe(handler: WSHandler): () => void {
@@ -142,8 +233,8 @@ class WebSocketService {
         event: 'UNIT_STATUS_CHANGE',
         timestamp: now,
         payload: {
-          unitId: "UNIT-FIRE-01",
-          callsign: "Heavy Rescue Engine 05",
+          unitId: "FIRE-202",
+          callsign: "Heavy Engine 2",
           status: "DISPATCHED",
           location: { lat: 19.1100, lng: 72.8460, address: "En route via WEH" }
         }
@@ -153,9 +244,8 @@ class WebSocketService {
         id: `ALT-${Math.floor(Math.random() * 1000)}`,
         type: "ESCALATION",
         title: "AUTOMATED ESCALATION ALERT",
-        message: "Chemical Spill Incident INC-2026-8801 risk score escalated due to wind speed changes.",
+        message: "Active high priority emergency unassigned. SLA threshold approaching limit.",
         timestamp: now,
-        incidentId: "INC-2026-8801",
         severity: "CRITICAL",
         acknowledged: false
       };

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Play, RefreshCw, AlertOctagon, Flame, Activity, Sparkles, PlusCircle } from 'lucide-react';
+import { emergencyApi } from '../services/api';
 import { wsService } from '../services/websocket';
 
 interface LiveSimulatorBarProps {
@@ -18,7 +19,8 @@ export const LiveSimulatorBar: React.FC<LiveSimulatorBarProps> = ({
   const [demoStep, setDemoStep] = useState<string | null>(null);
 
   const handleRunFullDemo = () => {
-    setDemoStep('1/5: Generating New Emergency Incident...');
+    setDemoStep('1/5: Triggering Scenario A via AI Backend...');
+    emergencyApi.triggerScenario('A').catch(() => null);
     wsService.triggerSimulatedEvent('NEW_INCIDENT');
 
     setTimeout(() => {
@@ -43,33 +45,33 @@ export const LiveSimulatorBar: React.FC<LiveSimulatorBarProps> = ({
   };
 
   return (
-    <div className="bg-slate-900/90 backdrop-blur-md border-b border-slate-800 px-4 py-2 flex items-center justify-between z-20 shadow-md flex-wrap gap-2">
-      <div className="flex items-center gap-2">
-        <span className="flex h-2 w-2 relative">
+    <div className="bg-slate-900/95 backdrop-blur-md border-b border-slate-800 px-4 py-2.5 flex items-center justify-between z-20 shadow-md flex-wrap gap-2.5">
+      <div className="flex items-center gap-2.5">
+        <span className="flex h-2.5 w-2.5 relative">
           <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${isSimulating ? 'bg-amber-400' : 'bg-emerald-400'} opacity-75`}></span>
-          <span className={`relative inline-flex rounded-full h-2 w-2 ${isSimulating ? 'bg-amber-500' : 'bg-emerald-500'}`}></span>
+          <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${isSimulating ? 'bg-amber-500' : 'bg-emerald-500'}`}></span>
         </span>
-        <span className="text-xs font-mono font-semibold text-slate-300">
-          SIMULATOR STATUS: <span className={isSimulating ? "text-amber-400 font-bold" : "text-emerald-400 font-bold"}>
+        <span className="text-sm font-mono font-semibold text-slate-200">
+          SIMULATOR STATUS: <span className={isSimulating ? "text-amber-400 font-extrabold" : "text-emerald-400 font-extrabold"}>
             {isSimulating ? "AUTO SIMULATION ACTIVE" : "STANDBY"}
           </span>
         </span>
 
         {demoStep && (
-          <span className="text-xs font-mono font-bold text-cyan-400 bg-cyan-950/80 px-2.5 py-0.5 rounded border border-cyan-500/40 animate-pulse">
+          <span className="text-xs sm:text-sm font-mono font-bold text-cyan-300 bg-cyan-950/90 px-3 py-1 rounded-lg border border-cyan-500/50 animate-pulse">
             {demoStep}
           </span>
         )}
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2.5 flex-wrap">
         {/* Guided SIH Demo Scenario Button */}
         <button
           onClick={handleRunFullDemo}
-          className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-gradient-to-r from-amber-500 via-amber-600 to-red-600 hover:from-amber-400 hover:to-red-500 text-white text-xs font-heading font-extrabold shadow-md transition-all"
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 via-amber-600 to-red-600 hover:from-amber-400 hover:to-red-500 text-white text-sm font-heading font-black shadow-lg transition-all hover:scale-105"
           title="Automates step-by-step emergency creation, AI recommendation, dispatch, field update, and SitRep analytics"
         >
-          <Sparkles className="w-3.5 h-3.5" />
+          <Sparkles className="w-4 h-4" />
           <span>▶ RUN SIH DEMO SCENARIO</span>
         </button>
 
@@ -77,47 +79,47 @@ export const LiveSimulatorBar: React.FC<LiveSimulatorBarProps> = ({
         {onOpenCreateModal && (
           <button
             onClick={onOpenCreateModal}
-            className="flex items-center gap-1.5 px-3 py-1 rounded bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-500/40 text-emerald-200 text-xs font-bold transition-all shadow-sm"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-950 hover:bg-emerald-900 border border-emerald-500/50 text-emerald-200 text-sm font-extrabold transition-all shadow-sm"
             title="Open Manual Incident Entry Form"
           >
-            <PlusCircle className="w-3.5 h-3.5 text-emerald-400" />
+            <PlusCircle className="w-4 h-4 text-emerald-400" />
             <span>+ Create Incident</span>
           </button>
         )}
 
         <button
           onClick={() => wsService.triggerSimulatedEvent('NEW_INCIDENT')}
-          className="flex items-center gap-1.5 px-3 py-1 rounded bg-red-950/80 hover:bg-red-900 border border-red-500/40 text-red-200 text-xs font-semibold transition-colors"
+          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-red-950 hover:bg-red-900 border border-red-500/50 text-red-200 text-sm font-extrabold transition-colors"
         >
-          <Flame className="w-3.5 h-3.5 text-red-400" />
+          <Flame className="w-4 h-4 text-red-400" />
           <span>+ Incident</span>
         </button>
 
         <button
           onClick={() => wsService.triggerSimulatedEvent('UNIT_UPDATE')}
-          className="flex items-center gap-1.5 px-3 py-1 rounded bg-blue-950/80 hover:bg-blue-900 border border-blue-500/40 text-blue-200 text-xs font-semibold transition-colors"
+          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-950 hover:bg-blue-900 border border-blue-500/50 text-blue-200 text-sm font-extrabold transition-colors"
         >
-          <Activity className="w-3.5 h-3.5 text-blue-400" />
+          <Activity className="w-4 h-4 text-blue-400" />
           <span>En Route</span>
         </button>
 
         <button
           onClick={() => wsService.triggerSimulatedEvent('ESCALATION')}
-          className="flex items-center gap-1.5 px-3 py-1 rounded bg-amber-950/80 hover:bg-amber-900 border border-amber-500/40 text-amber-200 text-xs font-semibold transition-colors"
+          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-950 hover:bg-amber-900 border border-amber-500/50 text-amber-200 text-sm font-extrabold transition-colors"
         >
-          <AlertOctagon className="w-3.5 h-3.5 text-amber-400" />
+          <AlertOctagon className="w-4 h-4 text-amber-400" />
           <span>Escalation</span>
         </button>
 
         <button
           onClick={onToggleSimulator}
-          className={`flex items-center gap-1.5 px-3 py-1 rounded text-xs font-semibold border transition-all ${
+          className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-extrabold border transition-all ${
             isSimulating
-              ? 'bg-amber-500/20 text-amber-300 border-amber-500/50'
-              : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700'
+              ? 'bg-amber-500/30 text-amber-200 border-amber-500/60'
+              : 'bg-slate-800 text-slate-200 border-slate-700 hover:bg-slate-700'
           }`}
         >
-          {isSimulating ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Play className="w-3.5 h-3.5" />}
+          {isSimulating ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
           <span>{isSimulating ? 'Pause Sim' : 'Auto Sim'}</span>
         </button>
       </div>
