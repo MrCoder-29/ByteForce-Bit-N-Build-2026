@@ -13,7 +13,18 @@ import {
 } from '../types/emergency';
 import { INITIAL_INCIDENTS, INITIAL_RESOURCE_UNITS, INITIAL_ANALYTICS, calculateMockRecommendations } from './mockData';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+export const getApiBaseUrl = (): string => {
+  if (import.meta.env.VITE_API_BASE_URL) return import.meta.env.VITE_API_BASE_URL;
+  if (typeof window !== 'undefined' && window.location) {
+    if (window.location.port === '3000') {
+      return ''; // Vite proxy forwards /api to backend on host machine
+    }
+    return `${window.location.protocol}//${window.location.hostname}:8000`;
+  }
+  return 'http://localhost:8000';
+};
+
+const API_BASE_URL = getApiBaseUrl();
 const ENABLE_MOCK_FALLBACK = import.meta.env.VITE_ENABLE_MOCK_FALLBACK !== 'false';
 
 // Memory store for local state updates when running in mock fallback mode

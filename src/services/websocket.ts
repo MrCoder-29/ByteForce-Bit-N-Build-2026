@@ -1,7 +1,15 @@
 import { WebSocketMessage, Incident, ResourceUnit, AlertNotice } from '../types/emergency';
 import { normalizeBackendIncident } from './api';
 
-const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:8000/ws/hq';
+export const getWsUrl = (): string => {
+  if (import.meta.env.VITE_WS_URL) return import.meta.env.VITE_WS_URL;
+  if (typeof window !== 'undefined' && window.location) {
+    const wsProto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    // Use window.location.host so Vite proxies /ws/hq on host machine regardless of client IP
+    return `${wsProto}//${window.location.host}/ws/hq`;
+  }
+  return 'ws://localhost:8000/ws/hq';
+};
 
 export type WSHandler = (msg: WebSocketMessage) => void;
 
@@ -17,7 +25,8 @@ class WebSocketService {
     if (this.socket || this.isSimulating) return;
 
     try {
-      this.socket = new WebSocket(WS_URL);
+      const url = getWsUrl();
+      this.socket = new WebSocket(url);
 
       this.socket.onopen = () => {
         console.log('[WebSocket HQ] Connected to Emergency HQ WS Server');

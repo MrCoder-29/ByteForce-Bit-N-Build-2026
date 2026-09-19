@@ -87,7 +87,11 @@ export const App: React.FC = () => {
 
     if (msg.event === 'INCIDENT_NEW') {
       const newInc: Incident = msg.payload;
-      setIncidents((prev) => [newInc, ...prev]);
+      setIncidents((prev) => {
+        if (prev.some((i) => i.id === newInc.id)) return prev;
+        return [newInc, ...prev];
+      });
+      emergencyApi.getAnalytics().then(setAnalytics).catch(() => null);
 
       // Add to alerts if critical
       if (newInc.severity === 'CRITICAL' || newInc.severity === 'HIGH') {
@@ -106,6 +110,7 @@ export const App: React.FC = () => {
     } else if (msg.event === 'INCIDENT_UPDATE') {
       const updatedInc: Incident = msg.payload;
       setIncidents((prev) => prev.map((inc) => (inc.id === updatedInc.id ? updatedInc : inc)));
+      emergencyApi.getAnalytics().then(setAnalytics).catch(() => null);
     } else if (msg.event === 'UNIT_STATUS_CHANGE') {
       const { unitId, status, location } = msg.payload;
       setUnits((prev) =>
