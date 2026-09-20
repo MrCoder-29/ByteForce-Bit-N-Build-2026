@@ -45,8 +45,8 @@ export const LiveSimulatorBar: React.FC<LiveSimulatorBarProps> = ({
   };
 
   return (
-    <div className="bg-slate-900/95 backdrop-blur-md border-b border-slate-800 px-4 py-2.5 flex items-center justify-between z-20 shadow-md flex-wrap gap-2.5">
-      <div className="flex items-center gap-2.5">
+    <div className="bg-slate-900/95 backdrop-blur-md border-b border-slate-800 px-3 py-1.5 flex items-center justify-between z-20 shadow-sm flex-wrap gap-2">
+      <div className="flex items-center gap-2">
         <span className="flex h-2.5 w-2.5 relative">
           <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${isSimulating ? 'bg-amber-400' : 'bg-emerald-400'} opacity-75`}></span>
           <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${isSimulating ? 'bg-amber-500' : 'bg-emerald-500'}`}></span>

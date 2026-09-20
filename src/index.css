@@ -20,18 +20,26 @@ h1, h2, h3, h4, h5, h6, .font-heading {
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #0d1322;
+  background: #090d16;
+  border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb {
-  background: #1f293d;
-  border-radius: 3px;
+  background: #334155;
+  border-radius: 4px;
+  border: 1px solid #1e293b;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #374151;
+  background: #475569;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #334155;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #06b6d4;
 }
 
 /* Glassmorphism helpers */

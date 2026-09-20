@@ -255,9 +255,9 @@ export const App: React.FC = () => {
       />
 
       {/* Main Workspace Body */}
-      <main className="flex-1 flex flex-col overflow-hidden relative p-3 gap-3">
+      <main className="flex-1 min-h-0 flex flex-col overflow-hidden relative p-2 sm:p-2.5 gap-2">
         {activeTab === 'MAP' && (
-          <div className="flex-1 flex flex-col gap-3 h-full overflow-hidden">
+          <div className="flex-1 min-h-0 flex flex-col gap-2 overflow-hidden">
             {/* Priority Actions Surface Bar */}
             <PriorityActionsPanel
               incidents={incidents}
@@ -265,9 +265,9 @@ export const App: React.FC = () => {
               onOpenDispatchModal={(inc) => setDispatchIncident(inc)}
             />
 
-            <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-3 h-full overflow-hidden">
+            <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-2 overflow-hidden">
               {/* Map Area (8 Columns on desktop) */}
-              <div className="lg:col-span-8 h-full min-h-[400px]">
+              <div className="lg:col-span-8 flex flex-col min-h-0 h-full overflow-hidden">
                 <CommandMap
                   incidents={incidents}
                   units={units}
@@ -278,7 +278,7 @@ export const App: React.FC = () => {
               </div>
 
               {/* Side Incident Feed (4 Columns on desktop) */}
-              <div className="lg:col-span-4 h-full overflow-hidden">
+              <div className="lg:col-span-4 flex flex-col min-h-0 h-full overflow-hidden">
                 <IncidentFeed
                   incidents={incidents}
                   selectedIncident={selectedIncident}
